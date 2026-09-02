@@ -1,84 +1,98 @@
-# Municipal Services Application
+# Municipal Services Application - Windows Forms Version
 
-## Project Overview
+## Overview
 
-The Municipal Services Application is a C# application developed for South African municipal service reporting.
+This folder contains the completed Windows Forms implementation for Part 1 of the Municipal Services Application for AAPD7112.
 
-The purpose of the application is to allow residents to report municipal issues in a simple and user-friendly way.
+The application allows residents to report municipal issues through a simple graphical user interface.
 
-This first part of the project focuses on the Report Issues feature.
+## Implemented Part 1 Features
 
-## Current Features
-
-- Main menu
+- Main Menu Windows Form
 - Report Issues option
-- Location input
-- Issue category selection
-- Detailed issue description
-- Optional image or document attachment
-- Input validation
-- Progress and engagement messages
+- Local Events and Announcements shown as disabled / coming soon
+- Service Request Status shown as disabled / coming soon
+- Location TextBox
+- Category ComboBox
+- Description RichTextBox
+- Optional media/document attachment using OpenFileDialog
+- Submit button
+- Back to Main Menu button
+- ProgressBar and encouraging progress messages
+- Validation using MessageBox feedback
 - Unique reference number generation
-- Report confirmation
-- Storage of submitted reports using a List
-
-The following features will be implemented later:
-
-- Local Events and Announcements
-- Service Request Status
+- Submitted reports stored using List<IssueReport>
+- Consistent colour scheme and responsive layout
 
 ## Requirements
 
-- .NET SDK
-- Visual Studio Code or Visual Studio
-- C#
+This Windows Forms version must be run on Windows.
 
-The application was developed using .NET 10.
+Recommended:
+- Windows 10 or Windows 11
+- Visual Studio with the .NET desktop development workload
+- .NET 10 SDK if using the included project file
 
-## How to Compile the Application
+## How to Compile
 
-Open a terminal inside the project folder and run:
+Open `MunicipalServicesApp.csproj` in Visual Studio.
 
-dotnet build
+Build the solution by selecting:
 
-If the application compiles successfully, the terminal will display:
+`Build > Build Solution`
 
-Build succeeded
+or press:
 
-## How to Run the Application
+`Ctrl + Shift + B`
 
-Run the following command:
+The application can also be compiled from a Windows terminal by running:
 
-dotnet run
+`dotnet build`
 
-The Municipal Services Application main menu will appear.
+## How to Run
+
+In Visual Studio, select the green Start button.
+
+Alternatively, from a Windows terminal in the project folder, run:
+
+`dotnet run`
 
 ## How to Use the Application
 
 1. Start the application.
-2. Select option 1 to report a municipal issue.
-3. Enter the location of the issue.
-4. Select a category.
-5. Enter a description of the issue.
-6. Add an image or document path if required, or press Enter to skip.
-7. Follow the progress messages displayed by the application.
-8. The application will submit the report and generate a unique reference number.
-9. A summary of the submitted issue will be displayed.
+2. The Main Menu displays three municipal service options.
+3. Select **Report Issues**.
+4. Enter the location of the issue.
+5. Select an issue category.
+6. Enter a detailed description of the issue.
+7. Select **Choose File** if you want to attach an image or document.
+8. Follow the progress indicator while completing the form.
+9. Select **Submit Report**.
+10. The application checks that all required fields have been completed.
+11. If information is missing, a MessageBox explains what must be corrected.
+12. After successful submission, a MessageBox displays the generated reference number and report summary.
+13. Select **Back to Main Menu** to return to the startup screen.
 
 ## Validation
 
-The application validates required information.
+The application validates the required issue information before a report is submitted.
 
-The user cannot leave required fields empty.
+The following fields are required:
+- Location
+- Category
+- Description
 
-The category selection is also validated to ensure that a valid option is selected.
+If one of these fields is missing, the application displays a clear warning message and allows the resident to correct the information.
+
+The media attachment is optional.
 
 ## Data Structure
 
-The application uses a List<IssueReport> to store submitted municipal issues.
+Submitted issues are stored using a:
 
-Each report contains:
+`List<IssueReport>`
 
+Each `IssueReport` stores:
 - Reference number
 - Location
 - Category
@@ -86,13 +100,59 @@ Each report contains:
 - Attachment path
 - Date reported
 
+Using a List makes it simple to store and manage multiple issue reports during the application session.
+
 ## User Engagement Strategy
 
-The application uses active citizen participation and feedback as its main user engagement strategy.
+The application supports active citizen participation and feedback.
 
-Progress messages are shown while the resident completes the report.
+The reporting process includes:
+- progress messages
+- a ProgressBar
+- clear validation feedback
+- submission confirmation
+- a unique reference number
+- an encouraging thank-you message
 
-The application also gives confirmation after successful submission and thanks the resident for helping improve the community.
+These features help residents understand where they are in the reporting process and confirm that their information has been received.
+
+## Interface Design
+
+The application uses a consistent colour scheme and layout across the Main Menu and Report Issues forms.
+
+The interface uses:
+- a dark navigation/header colour
+- a pink accent colour for important actions
+- light backgrounds for readability
+- clear labels and buttons
+- layouts that resize with the application window
+
+The two features planned for later parts of the project are visible but disabled so that users can clearly see that they are not yet available.
+
+## Development and Testing
+
+The application logic was initially developed and tested on macOS using a console prototype.
+
+The final Windows Forms version was then built and tested on Windows 11 using Visual Studio.
+
+The final version was tested for:
+- successful compilation
+- startup navigation
+- issue reporting
+- input validation
+- category selection
+- file attachment
+- progress feedback
+- successful submission
+- reference number generation
+- navigation back to the Main Menu
+
+## Future Development
+
+The same application will be extended in later assessments with:
+
+- Local Events and Announcements
+- Service Request Status
 
 ## Developer
 
