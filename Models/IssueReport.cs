@@ -2,11 +2,11 @@ namespace MunicipalServicesApp.Models
 {
     public class IssueReport
     {
-        public string ReferenceNumber { get; set; }
-        public string Location { get; set; }
-        public string Category { get; set; }
-        public string Description { get; set; }
-        public string AttachmentPath { get; set; }
+        public string ReferenceNumber { get; set; } = string.Empty;
+        public string Location { get; set; } = string.Empty;
+        public string Category { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public string AttachmentPath { get; set; } = string.Empty;
         public DateTime DateReported { get; set; }
     }
 }
