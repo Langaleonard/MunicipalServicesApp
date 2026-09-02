@@ -1,0 +1,15 @@
+C:\Mac\Home\Documents\RoseHub\MunicipalServicesApp\WindowsFormsVersion\bin\Debug\net10.0-windows\MunicipalServicesApp.exe
+C:\Mac\Home\Documents\RoseHub\MunicipalServicesApp\WindowsFormsVersion\bin\Debug\net10.0-windows\MunicipalServicesApp.deps.json
+C:\Mac\Home\Documents\RoseHub\MunicipalServicesApp\WindowsFormsVersion\bin\Debug\net10.0-windows\MunicipalServicesApp.runtimeconfig.json
+C:\Mac\Home\Documents\RoseHub\MunicipalServicesApp\WindowsFormsVersion\bin\Debug\net10.0-windows\MunicipalServicesApp.dll
+C:\Mac\Home\Documents\RoseHub\MunicipalServicesApp\WindowsFormsVersion\bin\Debug\net10.0-windows\MunicipalServicesApp.pdb
+C:\Mac\Home\Documents\RoseHub\MunicipalServicesApp\WindowsFormsVersion\obj\Debug\net10.0-windows\MunicipalServicesApp.GeneratedMSBuildEditorConfig.editorconfig
+C:\Mac\Home\Documents\RoseHub\MunicipalServicesApp\WindowsFormsVersion\obj\Debug\net10.0-windows\MunicipalServicesApp.AssemblyInfoInputs.cache
+C:\Mac\Home\Documents\RoseHub\MunicipalServicesApp\WindowsFormsVersion\obj\Debug\net10.0-windows\MunicipalServicesApp.AssemblyInfo.cs
+C:\Mac\Home\Documents\RoseHub\MunicipalServicesApp\WindowsFormsVersion\obj\Debug\net10.0-windows\MunicipalServicesApp.csproj.CoreCompileInputs.cache
+C:\Mac\Home\Documents\RoseHub\MunicipalServicesApp\WindowsFormsVersion\obj\Debug\net10.0-windows\MunicipalServicesApp.sourcelink.json
+C:\Mac\Home\Documents\RoseHub\MunicipalServicesApp\WindowsFormsVersion\obj\Debug\net10.0-windows\MunicipalServicesApp.dll
+C:\Mac\Home\Documents\RoseHub\MunicipalServicesApp\WindowsFormsVersion\obj\Debug\net10.0-windows\refint\MunicipalServicesApp.dll
+C:\Mac\Home\Documents\RoseHub\MunicipalServicesApp\WindowsFormsVersion\obj\Debug\net10.0-windows\MunicipalServicesApp.pdb
+C:\Mac\Home\Documents\RoseHub\MunicipalServicesApp\WindowsFormsVersion\obj\Debug\net10.0-windows\MunicipalServicesApp.genruntimeconfig.cache
+C:\Mac\Home\Documents\RoseHub\MunicipalServicesApp\WindowsFormsVersion\obj\Debug\net10.0-windows\ref\MunicipalServicesApp.dll
