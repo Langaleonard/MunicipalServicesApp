@@ -60,27 +60,48 @@ namespace MunicipalServicesApp
             var header = new Panel
             {
                 Dock = DockStyle.Top,
-                Height = 100,
-                BackColor = dark
+                Height = 106,
+                BackColor = dark,
+                Padding = new Padding(30, 10, 30, 8)
             };
+
+            var headerLayout = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 2,
+                BackColor = dark,
+                Margin = Padding.Empty,
+                Padding = Padding.Empty
+            };
+            headerLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            headerLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 62));
+            headerLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 38));
 
             var title = new Label
             {
                 Text = "Report a Municipal Issue",
                 ForeColor = white,
-                Font = new Font("Segoe UI", 22, FontStyle.Bold),
-                AutoSize = true,
-                Location = new Point(30, 16)
+                Font = new Font("Segoe UI", 20, FontStyle.Bold),
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleLeft,
+                AutoEllipsis = true,
+                Margin = Padding.Empty
             };
 
             var subtitleLabel = new Label
             {
                 Text = "Tell us what happened so the municipality can respond.",
                 ForeColor = Color.LightGray,
-                Font = new Font("Segoe UI", 10),
-                AutoSize = true,
-                Location = new Point(33, 60)
+                Font = new Font("Segoe UI", 9.5f),
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.TopLeft,
+                AutoEllipsis = true,
+                Margin = new Padding(2, 0, 0, 0)
             };
+
+            headerLayout.Controls.Add(title, 0, 0);
+            headerLayout.Controls.Add(subtitleLabel, 0, 1);
 
             var accentLine = new Panel
             {
@@ -89,8 +110,7 @@ namespace MunicipalServicesApp
                 Dock = DockStyle.Bottom
             };
 
-            header.Controls.Add(title);
-            header.Controls.Add(subtitleLabel);
+            header.Controls.Add(headerLayout);
             header.Controls.Add(accentLine);
 
             // FORM LAYOUT

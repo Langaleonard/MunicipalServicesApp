@@ -41,7 +41,7 @@ namespace MunicipalServicesApp
         {
             Text = "Local Events and Announcements";
             StartPosition = FormStartPosition.CenterScreen;
-            MinimumSize = new Size(900, 650);
+            MinimumSize = new Size(820, 620);
             Size = new Size(1100, 780);
             BackColor = pageBg;
             AutoScaleMode = AutoScaleMode.Dpi;
@@ -57,7 +57,7 @@ namespace MunicipalServicesApp
                 Dock = DockStyle.Fill,
                 ColumnCount = 1,
                 RowCount = 5,
-                Padding = new Padding(35, 22, 35, 25),
+                Padding = new Padding(30, 18, 30, 22),
                 BackColor = pageBg
             };
 
@@ -261,27 +261,48 @@ namespace MunicipalServicesApp
             var header = new Panel
             {
                 Dock = DockStyle.Top,
-                Height = 110,
-                BackColor = dark
+                Height = 116,
+                BackColor = dark,
+                Padding = new Padding(30, 12, 30, 8)
             };
+
+            var textLayout = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 2,
+                BackColor = dark,
+                Margin = Padding.Empty,
+                Padding = Padding.Empty
+            };
+            textLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            textLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 62));
+            textLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 38));
 
             var title = new Label
             {
                 Text = "Local Events & Announcements",
+                Dock = DockStyle.Fill,
                 ForeColor = white,
-                Font = new Font("Segoe UI", 22, FontStyle.Bold),
-                AutoSize = true,
-                Location = new Point(30, 18)
+                Font = new Font("Segoe UI", 20, FontStyle.Bold),
+                TextAlign = ContentAlignment.MiddleLeft,
+                AutoEllipsis = true,
+                Margin = Padding.Empty
             };
 
             var subtitle = new Label
             {
                 Text = "Find upcoming community events and important municipal announcements.",
+                Dock = DockStyle.Fill,
                 ForeColor = Color.LightGray,
-                Font = new Font("Segoe UI", 10),
-                AutoSize = true,
-                Location = new Point(33, 65)
+                Font = new Font("Segoe UI", 9.5f),
+                TextAlign = ContentAlignment.TopLeft,
+                AutoEllipsis = true,
+                Margin = new Padding(2, 0, 0, 0)
             };
+
+            textLayout.Controls.Add(title, 0, 0);
+            textLayout.Controls.Add(subtitle, 0, 1);
 
             var accentLine = new Panel
             {
@@ -290,8 +311,7 @@ namespace MunicipalServicesApp
                 BackColor = accent
             };
 
-            header.Controls.Add(title);
-            header.Controls.Add(subtitle);
+            header.Controls.Add(textLayout);
             header.Controls.Add(accentLine);
             return header;
         }

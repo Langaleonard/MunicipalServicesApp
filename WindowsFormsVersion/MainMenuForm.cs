@@ -9,72 +9,40 @@ namespace MunicipalServicesApp
         private readonly Button btnLocalEvents;
         private readonly Button btnServiceStatus;
 
+        private readonly Color accent = ColorTranslator.FromHtml("#ff3295");
+        private readonly Color dark = ColorTranslator.FromHtml("#0f172a");
+        private readonly Color pageBg = ColorTranslator.FromHtml("#eef2f7");
+        private readonly Color white = ColorTranslator.FromHtml("#ffffff");
+        private readonly Color subtitle = ColorTranslator.FromHtml("#555555");
+        private readonly Color disabled = ColorTranslator.FromHtml("#999999");
+        private readonly Color lightBorder = ColorTranslator.FromHtml("#dddddd");
+
         public MainMenuForm()
         {
-            Color accent = ColorTranslator.FromHtml("#ff3295");
-            Color dark = ColorTranslator.FromHtml("#0f172a");
-            Color pageBg = ColorTranslator.FromHtml("#eef2f7");
-            Color white = ColorTranslator.FromHtml("#ffffff");
-            Color subtitle = ColorTranslator.FromHtml("#555555");
-            Color disabled = ColorTranslator.FromHtml("#999999");
-            Color lightBorder = ColorTranslator.FromHtml("#dddddd");
-
             Text = "Municipal Services Application";
             StartPosition = FormStartPosition.CenterScreen;
-            MinimumSize = new Size(760, 540);
-            Size = new Size(900, 640);
+            MinimumSize = new Size(820, 600);
+            Size = new Size(980, 720);
             BackColor = pageBg;
             AutoScaleMode = AutoScaleMode.Dpi;
+            MaximizeBox = true;
 
-            var header = new Panel
-            {
-                Dock = DockStyle.Top,
-                Height = 140,
-                BackColor = dark
-            };
-
-            var title = new Label
-            {
-                Text = "MUNICIPAL SERVICES",
-                ForeColor = white,
-                Font = new Font("Segoe UI", 24, FontStyle.Bold),
-                AutoSize = true,
-                Location = new Point(35, 28)
-            };
-
-            var subtitleLabel = new Label
-            {
-                Text = "Report issues, discover local events and access municipal services",
-                ForeColor = Color.LightGray,
-                Font = new Font("Segoe UI", 11),
-                AutoSize = true,
-                Location = new Point(38, 80)
-            };
-
-            var accentLine = new Panel
-            {
-                BackColor = accent,
-                Height = 5,
-                Dock = DockStyle.Bottom
-            };
-
-            header.Controls.Add(title);
-            header.Controls.Add(subtitleLabel);
-            header.Controls.Add(accentLine);
+            var header = BuildHeader();
 
             var content = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
-                Padding = new Padding(55, 35, 55, 35),
+                Padding = new Padding(45, 30, 45, 28),
                 ColumnCount = 1,
                 RowCount = 4,
                 BackColor = pageBg
             };
 
+            content.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
             content.RowStyles.Add(new RowStyle(SizeType.Percent, 33));
             content.RowStyles.Add(new RowStyle(SizeType.Percent, 33));
-            content.RowStyles.Add(new RowStyle(SizeType.Percent, 33));
-            content.RowStyles.Add(new RowStyle(SizeType.Absolute, 45));
+            content.RowStyles.Add(new RowStyle(SizeType.Percent, 34));
+            content.RowStyles.Add(new RowStyle(SizeType.Absolute, 42));
 
             btnReportIssues = CreateMenuButton(
                 "Report Issues",
@@ -83,6 +51,7 @@ namespace MunicipalServicesApp
             btnReportIssues.BackColor = white;
             btnReportIssues.ForeColor = dark;
             btnReportIssues.FlatAppearance.BorderColor = accent;
+            btnReportIssues.FlatAppearance.MouseOverBackColor = ColorTranslator.FromHtml("#fff1f7");
             btnReportIssues.Click += BtnReportIssues_Click;
 
             btnLocalEvents = CreateMenuButton(
@@ -92,6 +61,7 @@ namespace MunicipalServicesApp
             btnLocalEvents.BackColor = accent;
             btnLocalEvents.ForeColor = white;
             btnLocalEvents.FlatAppearance.BorderColor = accent;
+            btnLocalEvents.FlatAppearance.MouseOverBackColor = ColorTranslator.FromHtml("#e82987");
             btnLocalEvents.Click += BtnLocalEvents_Click;
 
             btnServiceStatus = CreateMenuButton(
@@ -121,6 +91,66 @@ namespace MunicipalServicesApp
             Controls.Add(header);
         }
 
+        private Control BuildHeader()
+        {
+            var header = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 132,
+                BackColor = dark,
+                Padding = new Padding(34, 14, 34, 9)
+            };
+
+            var textLayout = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 2,
+                BackColor = dark,
+                Margin = Padding.Empty,
+                Padding = Padding.Empty
+            };
+            textLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            textLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 62));
+            textLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 38));
+
+            var title = new Label
+            {
+                Text = "MUNICIPAL SERVICES",
+                Dock = DockStyle.Fill,
+                ForeColor = white,
+                Font = new Font("Segoe UI", 22, FontStyle.Bold),
+                TextAlign = ContentAlignment.MiddleLeft,
+                AutoEllipsis = true,
+                Margin = Padding.Empty
+            };
+
+            var subtitleLabel = new Label
+            {
+                Text = "Report issues, discover local events and access municipal services",
+                Dock = DockStyle.Fill,
+                ForeColor = Color.LightGray,
+                Font = new Font("Segoe UI", 10),
+                TextAlign = ContentAlignment.TopLeft,
+                AutoEllipsis = true,
+                Margin = new Padding(2, 0, 0, 0)
+            };
+
+            textLayout.Controls.Add(title, 0, 0);
+            textLayout.Controls.Add(subtitleLabel, 0, 1);
+
+            var accentLine = new Panel
+            {
+                BackColor = accent,
+                Height = 5,
+                Dock = DockStyle.Bottom
+            };
+
+            header.Controls.Add(textLayout);
+            header.Controls.Add(accentLine);
+            return header;
+        }
+
         private static Button CreateMenuButton(string title, string description)
         {
             return new Button
@@ -133,10 +163,11 @@ namespace MunicipalServicesApp
                 {
                     BorderSize = 1
                 },
-                Font = new Font("Segoe UI", 11, FontStyle.Bold),
+                Font = new Font("Segoe UI", 10.5f, FontStyle.Bold),
                 TextAlign = ContentAlignment.MiddleLeft,
-                Padding = new Padding(20, 0, 20, 0),
-                Cursor = Cursors.Hand
+                Padding = new Padding(22, 8, 22, 8),
+                Cursor = Cursors.Hand,
+                UseVisualStyleBackColor = false
             };
         }
 
