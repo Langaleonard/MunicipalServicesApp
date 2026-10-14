@@ -1,43 +1,20 @@
-# Municipal Services Application - Windows Forms Version
+# Municipal Services Application - Part 2
 
 ## Overview
 
-This folder contains the completed Windows Forms implementation for Part 1 of the Municipal Services Application for AAPD7112.
+This project is the Part 2 continuation of the Municipal Services Application for AAPD7112.
 
-The application allows residents to report municipal issues through a simple graphical user interface.
-
-## Implemented Part 1 Features
-
-- Main Menu Windows Form
-- Report Issues option
-- Local Events and Announcements shown as disabled / coming soon
-- Service Request Status shown as disabled / coming soon
-- Location TextBox
-- Category ComboBox
-- Description RichTextBox
-- Optional media/document attachment using OpenFileDialog
-- Submit button
-- Back to Main Menu button
-- ProgressBar and encouraging progress messages
-- Validation using MessageBox feedback
-- Unique reference number generation
-- Submitted reports stored using List<IssueReport>
-- Consistent colour scheme and responsive layout
+The application keeps the working **Report Issues** feature from Part 1 and adds the **Local Events and Announcements** feature required for Part 2. **Service Request Status** remains disabled because it will be implemented in the final PoE.
 
 ## Requirements
 
-This Windows Forms version must be run on Windows.
-
-Recommended:
 - Windows 10 or Windows 11
 - Visual Studio with the .NET desktop development workload
-- .NET 10 SDK if using the included project file
+- .NET 10 SDK
 
-## How to Compile
+## Compile
 
-Open `MunicipalServicesApp.csproj` in Visual Studio.
-
-Build the solution by selecting:
+Open `MunicipalServicesApp.csproj` in Visual Studio and select:
 
 `Build > Build Solution`
 
@@ -45,115 +22,88 @@ or press:
 
 `Ctrl + Shift + B`
 
-The application can also be compiled from a Windows terminal by running:
+From a Windows terminal in the project folder you can also run:
 
 `dotnet build`
 
-## How to Run
+## Run
 
-In Visual Studio, select the green Start button.
+In Visual Studio, select the green **Start** button.
 
-Alternatively, from a Windows terminal in the project folder, run:
+Alternatively:
 
 `dotnet run`
 
-## How to Use the Application
+## Main Menu
 
-1. Start the application.
-2. The Main Menu displays three municipal service options.
-3. Select **Report Issues**.
-4. Enter the location of the issue.
-5. Select an issue category.
-6. Enter a detailed description of the issue.
-7. Select **Choose File** if you want to attach an image or document.
-8. Follow the progress indicator while completing the form.
-9. Select **Submit Report**.
-10. The application checks that all required fields have been completed.
-11. If information is missing, a MessageBox explains what must be corrected.
-12. After successful submission, a MessageBox displays the generated reference number and report summary.
-13. Select **Back to Main Menu** to return to the startup screen.
+The main menu contains:
 
-## Validation
+1. **Report Issues** - implemented in Part 1 and still functional.
+2. **Local Events and Announcements** - implemented in Part 2.
+3. **Service Request Status** - disabled until the final PoE.
 
-The application validates the required issue information before a report is submitted.
+## Local Events and Announcements
 
-The following fields are required:
-- Location
-- Category
-- Description
+The Part 2 page allows residents to:
 
-If one of these fields is missing, the application displays a clear warning message and allows the resident to correct the information.
+- View upcoming local events and municipal announcements.
+- Search by title, location, category or keyword.
+- Filter by a selected event category.
+- Filter by a specific date.
+- Reset the filters and return to all upcoming items.
+- Receive event recommendations based on previous category searches.
+- Return to the Main Menu.
 
-The media attachment is optional.
+The interface is responsive and uses the same colour scheme and layout style as Part 1.
 
-## Data Structure
+## Advanced Data Structures
 
-Submitted issues are stored using a:
+### PriorityQueue<EventItem, DateTime>
 
-`List<IssueReport>`
+A priority queue is used for upcoming events. The event date is used as the priority so that the next upcoming event can be retrieved first. This provides efficient chronological organisation of event-related data.
 
-Each `IssueReport` stores:
-- Reference number
-- Location
-- Category
-- Description
-- Attachment path
-- Date reported
+### SortedDictionary<DateTime, List<EventItem>>
 
-Using a List makes it simple to store and manage multiple issue reports during the application session.
+A sorted dictionary stores events by date. This allows events to remain organised in date order and makes date-based retrieval efficient when the user filters events using the date selector.
 
-## User Engagement Strategy
+### Dictionary<string, List<EventItem>>
 
-The application supports active citizen participation and feedback.
+A dictionary stores events by category. It provides fast access to all events in a selected category such as Community, Business, Health or Municipal Notice.
 
-The reporting process includes:
-- progress messages
-- a ProgressBar
-- clear validation feedback
-- submission confirmation
-- a unique reference number
-- an encouraging thank-you message
+### HashSet<string>
 
-These features help residents understand where they are in the reporting process and confirm that their information has been received.
+A set stores unique event categories. This prevents duplicate category names when the category filter is populated.
 
-## Interface Design
+### HashSet<DateTime>
 
-The application uses a consistent colour scheme and layout across the Main Menu and Report Issues forms.
+A second set keeps unique event dates. This demonstrates set-based handling of unique date values in the event collection.
 
-The interface uses:
-- a dark navigation/header colour
-- a pink accent colour for important actions
-- light backgrounds for readability
-- clear labels and buttons
-- layouts that resize with the application window
+### Stack<string>
 
-The two features planned for later parts of the project are visible but disabled so that users can clearly see that they are not yet available.
+A stack records recent user searches. The most recent search is stored at the top of the stack. This supports the analysis of recent user activity while demonstrating a LIFO data structure.
 
-## Development and Testing
+### Dictionary<string, int>
 
-The application logic was initially developed and tested on macOS using a console prototype.
+A search-preference dictionary counts how often users search for each category. These counts are used by the recommendation feature to determine the user's most frequently searched category.
 
-The final Windows Forms version was then built and tested on Windows 11 using Visual Studio.
+## Recommendation Feature
 
-The final version was tested for:
-- successful compilation
-- startup navigation
-- issue reporting
-- input validation
-- category selection
-- file attachment
-- progress feedback
-- successful submission
-- reference number generation
-- navigation back to the Main Menu
+The recommendation feature analyses the categories selected by the user during searches.
 
-## Future Development
+Each category search increases a count in `Dictionary<string, int>`. The category with the highest count is treated as the user's current preference. The system then retrieves upcoming events from that category and displays up to three recommendations in the **Recommended For You** section.
 
-The same application will be extended in later assessments with:
+Before the user has performed any searches, the application displays the next three upcoming events as general recommendations.
 
-- Local Events and Announcements
-- Service Request Status
+This provides a simple and understandable recommendation algorithm that is directly based on user search behaviour.
+
+## Event Data
+
+The project contains sample municipal and community event information for demonstration and assessment purposes. Dates are generated relative to the current date so that the sample events remain upcoming when the application is tested.
 
 ## Developer
 
 Leonard Langa
+
+## GitHub
+
+https://github.com/Langaleonard/MunicipalServicesApp

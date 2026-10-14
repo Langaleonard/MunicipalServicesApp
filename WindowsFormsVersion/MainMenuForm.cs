@@ -11,7 +11,6 @@ namespace MunicipalServicesApp
 
         public MainMenuForm()
         {
-            // Colour palette
             Color accent = ColorTranslator.FromHtml("#ff3295");
             Color dark = ColorTranslator.FromHtml("#0f172a");
             Color pageBg = ColorTranslator.FromHtml("#eef2f7");
@@ -22,11 +21,11 @@ namespace MunicipalServicesApp
 
             Text = "Municipal Services Application";
             StartPosition = FormStartPosition.CenterScreen;
-            MinimumSize = new Size(720, 520);
-            Size = new Size(820, 600);
+            MinimumSize = new Size(760, 540);
+            Size = new Size(900, 640);
             BackColor = pageBg;
+            AutoScaleMode = AutoScaleMode.Dpi;
 
-            // Header
             var header = new Panel
             {
                 Dock = DockStyle.Top,
@@ -45,7 +44,7 @@ namespace MunicipalServicesApp
 
             var subtitleLabel = new Label
             {
-                Text = "Report and access municipal services in your community",
+                Text = "Report issues, discover local events and access municipal services",
                 ForeColor = Color.LightGray,
                 Font = new Font("Segoe UI", 11),
                 AutoSize = true,
@@ -63,7 +62,6 @@ namespace MunicipalServicesApp
             header.Controls.Add(subtitleLabel);
             header.Controls.Add(accentLine);
 
-            // Main content area
             var content = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
@@ -78,34 +76,28 @@ namespace MunicipalServicesApp
             content.RowStyles.Add(new RowStyle(SizeType.Percent, 33));
             content.RowStyles.Add(new RowStyle(SizeType.Absolute, 45));
 
-            // Report Issues
             btnReportIssues = CreateMenuButton(
                 "Report Issues",
                 "Report potholes, water leaks, electricity faults and other issues."
             );
-
-            btnReportIssues.BackColor = accent;
-            btnReportIssues.ForeColor = white;
+            btnReportIssues.BackColor = white;
+            btnReportIssues.ForeColor = dark;
             btnReportIssues.FlatAppearance.BorderColor = accent;
             btnReportIssues.Click += BtnReportIssues_Click;
 
-            // Local Events
             btnLocalEvents = CreateMenuButton(
                 "Local Events and Announcements",
-                "Coming Soon"
+                "Browse, search and receive recommendations for upcoming local activities."
             );
+            btnLocalEvents.BackColor = accent;
+            btnLocalEvents.ForeColor = white;
+            btnLocalEvents.FlatAppearance.BorderColor = accent;
+            btnLocalEvents.Click += BtnLocalEvents_Click;
 
-            btnLocalEvents.Enabled = false;
-            btnLocalEvents.BackColor = white;
-            btnLocalEvents.ForeColor = disabled;
-            btnLocalEvents.FlatAppearance.BorderColor = lightBorder;
-
-            // Service Status
             btnServiceStatus = CreateMenuButton(
                 "Service Request Status",
-                "Coming Soon"
+                "Coming Soon - this feature will be implemented in the final PoE."
             );
-
             btnServiceStatus.Enabled = false;
             btnServiceStatus.BackColor = white;
             btnServiceStatus.ForeColor = disabled;
@@ -113,7 +105,7 @@ namespace MunicipalServicesApp
 
             var footer = new Label
             {
-                Text = "Part 1 - Report Issues",
+                Text = "Part 2 - Local Events and Announcements",
                 Dock = DockStyle.Fill,
                 TextAlign = ContentAlignment.MiddleCenter,
                 ForeColor = subtitle,
@@ -151,7 +143,14 @@ namespace MunicipalServicesApp
         private void BtnReportIssues_Click(object? sender, System.EventArgs e)
         {
             using var form = new ReportIssueForm();
+            Hide();
+            form.ShowDialog();
+            Show();
+        }
 
+        private void BtnLocalEvents_Click(object? sender, System.EventArgs e)
+        {
+            using var form = new LocalEventsForm();
             Hide();
             form.ShowDialog();
             Show();

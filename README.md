@@ -1,158 +1,89 @@
-# Municipal Services Application - Windows Forms Version
+# Municipal Services Application - Part 2
 
 ## Overview
 
-This folder contains the completed Windows Forms implementation for Part 1 of the Municipal Services Application for AAPD7112.
+This project continues the AAPD7112 Municipal Services Application from Part 1.
 
-The application allows residents to report municipal issues through a simple graphical user interface.
+Part 2 adds **Local Events and Announcements** while keeping the existing **Report Issues** feature. **Service Request Status** remains unavailable until the final PoE.
 
-## Implemented Part 1 Features
+The project contains two versions so development can continue on macOS while the final graphical application remains a Windows Forms application:
 
-- Main Menu Windows Form
-- Report Issues option
-- Local Events and Announcements shown as disabled / coming soon
-- Service Request Status shown as disabled / coming soon
-- Location TextBox
-- Category ComboBox
-- Description RichTextBox
-- Optional media/document attachment using OpenFileDialog
-- Submit button
-- Back to Main Menu button
-- ProgressBar and encouraging progress messages
-- Validation using MessageBox feedback
-- Unique reference number generation
-- Submitted reports stored using List<IssueReport>
-- Consistent colour scheme and responsive layout
+- The project in this root folder is a **macOS-compatible console test harness** targeting `net10.0`.
+- The `WindowsFormsVersion` folder contains the **final Windows Forms application** targeting `net10.0-windows`.
 
-## Requirements
+## Part 2 Features
 
-This Windows Forms version must be run on Windows.
+- Report Issues from Part 1 remains available.
+- Local Events and Announcements is now available.
+- Service Request Status remains marked as Coming Soon.
+- Upcoming local events and municipal announcements are displayed.
+- Events can be searched using a keyword, category and date.
+- Recommendations change according to the user's search behaviour.
+- Event information is organised with advanced data structures required by Part 2.
 
-Recommended:
-- Windows 10 or Windows 11
-- Visual Studio with the .NET desktop development workload
-- .NET 10 SDK if using the included project file
+## Advanced Data Structures
 
-## How to Compile
+The Local Events feature uses the following structures:
 
-Open `MunicipalServicesApp.csproj` in Visual Studio.
+- `PriorityQueue<EventItem, DateTime>` to order upcoming events by date.
+- `SortedDictionary<DateTime, List<EventItem>>` to organise events chronologically.
+- `Dictionary<string, List<EventItem>>` to retrieve events efficiently by category.
+- `Dictionary<string, int>` to record category search frequency for recommendations.
+- `HashSet<string>` to store unique event categories.
+- `HashSet<DateTime>` to store unique event dates.
+- `Stack<string>` to keep recent searches.
 
-Build the solution by selecting:
+## Recommendation Feature
 
-`Build > Build Solution`
+The application records category-based search activity. The category searched most often becomes the user's preferred category. Upcoming events from that category are then recommended. Before any searches are performed, the application recommends the next upcoming events.
 
-or press:
+## Testing on macOS
 
-`Ctrl + Shift + B`
+The root console project can be compiled and run on macOS.
 
-The application can also be compiled from a Windows terminal by running:
+From Terminal in the `MunicipalServicesApp` folder run:
 
-`dotnet build`
+```bash
+dotnet clean
+dotnet restore
+dotnet build
+dotnet run
+```
 
-## How to Run
+Use the console menu to test:
 
-In Visual Studio, select the green Start button.
+1. Report Issues
+2. Local Events and Announcements
+3. Service Request Status - Coming Soon
 
-Alternatively, from a Windows terminal in the project folder, run:
+The console version exists so the Part 2 logic and data structures can be tested without Windows.
 
-`dotnet run`
+## Final Windows Forms Version
 
-## How to Use the Application
+The final graphical application is located in:
 
-1. Start the application.
-2. The Main Menu displays three municipal service options.
-3. Select **Report Issues**.
-4. Enter the location of the issue.
-5. Select an issue category.
-6. Enter a detailed description of the issue.
-7. Select **Choose File** if you want to attach an image or document.
-8. Follow the progress indicator while completing the form.
-9. Select **Submit Report**.
-10. The application checks that all required fields have been completed.
-11. If information is missing, a MessageBox explains what must be corrected.
-12. After successful submission, a MessageBox displays the generated reference number and report summary.
-13. Select **Back to Main Menu** to return to the startup screen.
+```text
+WindowsFormsVersion/
+```
 
-## Validation
+It includes:
 
-The application validates the required issue information before a report is submitted.
+- `MainMenuForm.cs`
+- `ReportIssueForm.cs`
+- `LocalEventsForm.cs`
+- `Models/IssueReport.cs`
+- `Models/EventItem.cs`
+- `MunicipalServicesApp.csproj`
 
-The following fields are required:
-- Location
-- Category
-- Description
+On Windows, open the `WindowsFormsVersion` folder in Visual Studio or run:
 
-If one of these fields is missing, the application displays a clear warning message and allows the resident to correct the information.
+```powershell
+dotnet restore
+dotnet build
+dotnet run
+```
 
-The media attachment is optional.
-
-## Data Structure
-
-Submitted issues are stored using a:
-
-`List<IssueReport>`
-
-Each `IssueReport` stores:
-- Reference number
-- Location
-- Category
-- Description
-- Attachment path
-- Date reported
-
-Using a List makes it simple to store and manage multiple issue reports during the application session.
-
-## User Engagement Strategy
-
-The application supports active citizen participation and feedback.
-
-The reporting process includes:
-- progress messages
-- a ProgressBar
-- clear validation feedback
-- submission confirmation
-- a unique reference number
-- an encouraging thank-you message
-
-These features help residents understand where they are in the reporting process and confirm that their information has been received.
-
-## Interface Design
-
-The application uses a consistent colour scheme and layout across the Main Menu and Report Issues forms.
-
-The interface uses:
-- a dark navigation/header colour
-- a pink accent colour for important actions
-- light backgrounds for readability
-- clear labels and buttons
-- layouts that resize with the application window
-
-The two features planned for later parts of the project are visible but disabled so that users can clearly see that they are not yet available.
-
-## Development and Testing
-
-The application logic was initially developed and tested on macOS using a console prototype.
-
-The final Windows Forms version was then built and tested on Windows 11 using Visual Studio.
-
-The final version was tested for:
-- successful compilation
-- startup navigation
-- issue reporting
-- input validation
-- category selection
-- file attachment
-- progress feedback
-- successful submission
-- reference number generation
-- navigation back to the Main Menu
-
-## Future Development
-
-The same application will be extended in later assessments with:
-
-- Local Events and Announcements
-- Service Request Status
+The Windows Forms interface uses the same colour scheme as Part 1 and includes a responsive Local Events and Announcements screen.
 
 ## Developer
 
