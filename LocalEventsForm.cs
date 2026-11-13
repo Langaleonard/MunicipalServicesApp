@@ -1,12 +1,15 @@
 using MunicipalServicesApp.Models;
+using System;
+using System.Collections.Generic;
+using System.Drawing;
+using System.Linq;
+using System.Windows.Forms;
 
 namespace MunicipalServicesApp
 {
-    // Console test harness for macOS.
-    // The final Windows Forms version is inside WindowsFormsVersion/.
-    public class LocalEventsForm
+    public class LocalEventsForm : Form
     {
-        private readonly List<EventItem> allEvents = new();
+        // Advanced data structures required for Part 2.
         private readonly SortedDictionary<DateTime, List<EventItem>> eventsByDate = new();
         private readonly Dictionary<string, List<EventItem>> eventsByCategory = new(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, int> categorySearchCounts = new(StringComparer.OrdinalIgnoreCase);
@@ -15,182 +18,322 @@ namespace MunicipalServicesApp
         private readonly PriorityQueue<EventItem, DateTime> upcomingEventQueue = new();
         private readonly Stack<string> recentSearches = new();
 
+        private readonly List<EventItem> allEvents = new();
+
+        private readonly TextBox txtSearch;
+        private readonly ComboBox cmbCategory;
+        private readonly DateTimePicker dtpDate;
+        private readonly FlowLayoutPanel eventsPanel;
+        private readonly FlowLayoutPanel recommendationsPanel;
+        private readonly Label lblResultCount;
+        private readonly Label lblRecommendationInfo;
+
+        private readonly Color accent = ColorTranslator.FromHtml("#ff3295");
+        private readonly Color dark = ColorTranslator.FromHtml("#0f172a");
+        private readonly Color pageBg = ColorTranslator.FromHtml("#eef2f7");
+        private readonly Color white = ColorTranslator.FromHtml("#ffffff");
+        private readonly Color muted = ColorTranslator.FromHtml("#555555");
+        private readonly Color lightBorder = ColorTranslator.FromHtml("#dddddd");
+        private readonly Color infoBg = ColorTranslator.FromHtml("#e0f2fe");
+        private readonly Color infoText = ColorTranslator.FromHtml("#075985");
+
         public LocalEventsForm()
         {
+            Text = "Local Events and Announcements";
+            StartPosition = FormStartPosition.CenterScreen;
+            MinimumSize = new Size(820, 620);
+            Size = new Size(1100, 780);
+            BackColor = pageBg;
+            AutoScaleMode = AutoScaleMode.Dpi;
+            MaximizeBox = true;
+
             SeedEvents();
             BuildDataStructures();
-        }
 
-        public void Start()
-        {
-            while (true)
+            var header = BuildHeader();
+
+            var mainLayout = new TableLayoutPanel
             {
-                Console.Clear();
-                WriteHeading();
-                DisplayEvents(GetUpcomingEvents().Take(8).ToList(), "Upcoming Events and Announcements");
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 5,
+                Padding = new Padding(30, 18, 30, 22),
+                BackColor = pageBg
+            };
 
-                Console.WriteLine();
-                Console.WriteLine("1. Search events");
-                Console.WriteLine("2. View recommendations");
-                Console.WriteLine("3. View categories and dates");
-                Console.WriteLine("0. Back to Main Menu");
-                Console.WriteLine();
-                Console.Write("Choose an option: ");
+            mainLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 68));
+            mainLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 32));
+            mainLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
 
-                string choice = Console.ReadLine() ?? string.Empty;
-
-                switch (choice)
-                {
-                    case "1":
-                        SearchEvents();
-                        break;
-                    case "2":
-                        ShowRecommendations();
-                        break;
-                    case "3":
-                        ShowOrganisationSummary();
-                        break;
-                    case "0":
-                        return;
-                    default:
-                        Console.WriteLine("Invalid option.");
-                        Pause();
-                        break;
-                }
-            }
-        }
-
-        private void WriteHeading()
-        {
-            Console.WriteLine("Local Events and Announcements");
-            Console.WriteLine("==============================");
-            Console.WriteLine("Search municipal events by keyword, category and date.");
-            Console.WriteLine();
-        }
-
-        private void SearchEvents()
-        {
-            Console.Clear();
-            WriteHeading();
-
-            Console.Write("Keyword (press Enter for any): ");
-            string keyword = (Console.ReadLine() ?? string.Empty).Trim();
-
-            Console.WriteLine();
-            Console.WriteLine("Categories:");
-            Console.WriteLine("0. All Categories");
-
-            List<string> categories = uniqueCategories.OrderBy(c => c).ToList();
-            for (int i = 0; i < categories.Count; i++)
+            var filterCard = new Panel
             {
-                Console.WriteLine($"{i + 1}. {categories[i]}");
-            }
+                Dock = DockStyle.Top,
+                AutoSize = true,
+                BackColor = white,
+                Padding = new Padding(18),
+                Margin = new Padding(0, 0, 0, 14)
+            };
 
-            Console.Write("Category number: ");
-            string categoryInput = Console.ReadLine() ?? "0";
-
-            string selectedCategory = "All Categories";
-            if (int.TryParse(categoryInput, out int categoryIndex) &&
-                categoryIndex >= 1 &&
-                categoryIndex <= categories.Count)
+            var filters = new TableLayoutPanel
             {
-                selectedCategory = categories[categoryIndex - 1];
-            }
+                Dock = DockStyle.Top,
+                AutoSize = true,
+                ColumnCount = 5,
+                BackColor = white
+            };
 
-            Console.Write("Date yyyy-MM-dd (press Enter for any): ");
-            string dateInput = (Console.ReadLine() ?? string.Empty).Trim();
+            filters.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 34));
+            filters.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 22));
+            filters.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 22));
+            filters.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 11));
+            filters.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 11));
 
-            DateTime? selectedDate = null;
-            if (!string.IsNullOrWhiteSpace(dateInput))
+            txtSearch = new TextBox
             {
-                if (DateTime.TryParse(dateInput, out DateTime parsedDate))
-                {
-                    selectedDate = parsedDate.Date;
-                }
-                else
-                {
-                    Console.WriteLine("Invalid date. The date filter will be ignored.");
-                }
-            }
+                Dock = DockStyle.Fill,
+                Font = new Font("Segoe UI", 10),
+                PlaceholderText = "Search title, location or keyword...",
+                Margin = new Padding(0, 0, 10, 0)
+            };
 
-            IEnumerable<EventItem> results = allEvents
-                .Where(e => e.EventDate.Date >= DateTime.Today);
-
-            if (!selectedCategory.Equals("All Categories", StringComparison.OrdinalIgnoreCase))
+            cmbCategory = new ComboBox
             {
-                results = eventsByCategory.TryGetValue(selectedCategory, out List<EventItem>? categoryEvents)
-                    ? categoryEvents.Where(e => e.EventDate.Date >= DateTime.Today)
-                    : Enumerable.Empty<EventItem>();
-            }
+                Dock = DockStyle.Fill,
+                DropDownStyle = ComboBoxStyle.DropDownList,
+                Font = new Font("Segoe UI", 10),
+                Margin = new Padding(0, 0, 10, 0)
+            };
 
-            if (selectedDate.HasValue)
-            {
-                results = results.Where(e => e.EventDate.Date == selectedDate.Value);
-            }
-
-            if (!string.IsNullOrWhiteSpace(keyword))
-            {
-                results = results.Where(e =>
-                    e.Title.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
-                    e.Description.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
-                    e.Category.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
-                    e.Location.Contains(keyword, StringComparison.OrdinalIgnoreCase));
-            }
-
-            TrackSearch(keyword, selectedCategory, selectedDate);
-
-            Console.Clear();
-            WriteHeading();
-            DisplayEvents(results.OrderBy(e => e.EventDate).ToList(), "Search Results");
-            Console.WriteLine();
-            DisplayRecommendations(GetRecommendations());
-            Pause();
-        }
-
-        private void ShowRecommendations()
-        {
-            Console.Clear();
-            WriteHeading();
-            DisplayRecommendations(GetRecommendations());
-
-            if (recentSearches.Count > 0)
-            {
-                Console.WriteLine();
-                Console.WriteLine("Recent Searches (Stack)");
-                Console.WriteLine("-----------------------");
-                foreach (string search in recentSearches.Take(5))
-                {
-                    Console.WriteLine($"- {search}");
-                }
-            }
-
-            Pause();
-        }
-
-        private void ShowOrganisationSummary()
-        {
-            Console.Clear();
-            WriteHeading();
-
-            Console.WriteLine("Unique Categories (HashSet)");
-            Console.WriteLine("---------------------------");
+            cmbCategory.Items.Add("All Categories");
             foreach (string category in uniqueCategories.OrderBy(c => c))
             {
-                Console.WriteLine($"- {category}");
+                cmbCategory.Items.Add(category);
             }
+            cmbCategory.SelectedIndex = 0;
 
-            Console.WriteLine();
-            Console.WriteLine("Event Dates (SortedDictionary)");
-            Console.WriteLine("------------------------------");
-            foreach (KeyValuePair<DateTime, List<EventItem>> pair in eventsByDate)
+            dtpDate = new DateTimePicker
             {
-                Console.WriteLine($"{pair.Key:dd MMM yyyy}: {pair.Value.Count} item(s)");
-            }
+                Dock = DockStyle.Fill,
+                Font = new Font("Segoe UI", 10),
+                Format = DateTimePickerFormat.Short,
+                ShowCheckBox = true,
+                Checked = false,
+                Margin = new Padding(0, 0, 10, 0)
+            };
 
-            Console.WriteLine();
-            Console.WriteLine($"Unique event dates stored in HashSet: {uniqueEventDates.Count}");
-            Console.WriteLine($"Upcoming items indexed in PriorityQueue: {upcomingEventQueue.Count}");
-            Pause();
+            var btnSearch = CreateActionButton("Search", accent, white);
+            btnSearch.Margin = new Padding(0, 0, 8, 0);
+            btnSearch.Click += (_, _) => ApplySearch();
+
+            var btnReset = CreateActionButton("Reset", white, dark);
+            btnReset.FlatAppearance.BorderColor = lightBorder;
+            btnReset.Click += (_, _) => ResetSearch();
+
+            filters.Controls.Add(txtSearch, 0, 0);
+            filters.Controls.Add(cmbCategory, 1, 0);
+            filters.Controls.Add(dtpDate, 2, 0);
+            filters.Controls.Add(btnSearch, 3, 0);
+            filters.Controls.Add(btnReset, 4, 0);
+            filterCard.Controls.Add(filters);
+
+            var resultHeader = new TableLayoutPanel
+            {
+                Dock = DockStyle.Top,
+                AutoSize = true,
+                ColumnCount = 2,
+                Margin = new Padding(0, 0, 0, 8)
+            };
+            resultHeader.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 70));
+            resultHeader.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 30));
+
+            var lblEventsHeading = new Label
+            {
+                Text = "Upcoming Events & Announcements",
+                AutoSize = true,
+                Font = new Font("Segoe UI", 13, FontStyle.Bold),
+                ForeColor = dark
+            };
+
+            lblResultCount = new Label
+            {
+                AutoSize = true,
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.MiddleRight,
+                Font = new Font("Segoe UI", 9),
+                ForeColor = muted
+            };
+
+            resultHeader.Controls.Add(lblEventsHeading, 0, 0);
+            resultHeader.Controls.Add(lblResultCount, 1, 0);
+
+            eventsPanel = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                AutoScroll = true,
+                FlowDirection = FlowDirection.TopDown,
+                WrapContents = false,
+                BackColor = pageBg,
+                Padding = new Padding(0, 0, 8, 0),
+                Margin = new Padding(0, 0, 0, 15)
+            };
+            eventsPanel.SizeChanged += (_, _) => ResizeEventCards();
+
+            var recommendationsContainer = new Panel
+            {
+                Dock = DockStyle.Fill,
+                BackColor = white,
+                Padding = new Padding(16),
+                Margin = new Padding(0, 0, 0, 14)
+            };
+
+            var recLayout = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 3,
+                BackColor = white
+            };
+            recLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            recLayout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            recLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+
+            var recHeading = new Label
+            {
+                Text = "Recommended For You",
+                AutoSize = true,
+                Font = new Font("Segoe UI", 12, FontStyle.Bold),
+                ForeColor = dark,
+                Margin = new Padding(0, 0, 0, 3)
+            };
+
+            lblRecommendationInfo = new Label
+            {
+                Text = "Search by category to build personalised recommendations.",
+                AutoSize = true,
+                Font = new Font("Segoe UI", 9),
+                ForeColor = infoText,
+                BackColor = infoBg,
+                Padding = new Padding(8),
+                Margin = new Padding(0, 0, 0, 8)
+            };
+
+            recommendationsPanel = new FlowLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                AutoScroll = true,
+                FlowDirection = FlowDirection.LeftToRight,
+                WrapContents = true,
+                BackColor = white
+            };
+            recommendationsPanel.SizeChanged += (_, _) => ResizeRecommendationCards();
+
+            recLayout.Controls.Add(recHeading, 0, 0);
+            recLayout.Controls.Add(lblRecommendationInfo, 0, 1);
+            recLayout.Controls.Add(recommendationsPanel, 0, 2);
+            recommendationsContainer.Controls.Add(recLayout);
+
+            var btnBack = CreateActionButton("Back to Main Menu", white, dark);
+            btnBack.Dock = DockStyle.Left;
+            btnBack.Width = 190;
+            btnBack.FlatAppearance.BorderColor = lightBorder;
+            btnBack.Click += (_, _) => Close();
+
+            mainLayout.Controls.Add(filterCard, 0, 0);
+            mainLayout.Controls.Add(resultHeader, 0, 1);
+            mainLayout.Controls.Add(eventsPanel, 0, 2);
+            mainLayout.Controls.Add(recommendationsContainer, 0, 3);
+            mainLayout.Controls.Add(btnBack, 0, 4);
+
+            Controls.Add(mainLayout);
+            Controls.Add(header);
+
+            txtSearch.KeyDown += TxtSearch_KeyDown;
+
+            DisplayEvents(GetUpcomingEvents());
+            UpdateRecommendations();
+        }
+
+        private Panel BuildHeader()
+        {
+            var header = new Panel
+            {
+                Dock = DockStyle.Top,
+                Height = 116,
+                BackColor = dark,
+                Padding = new Padding(30, 12, 30, 8)
+            };
+
+            var textLayout = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 1,
+                RowCount = 2,
+                BackColor = dark,
+                Margin = Padding.Empty,
+                Padding = Padding.Empty
+            };
+            textLayout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            textLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 62));
+            textLayout.RowStyles.Add(new RowStyle(SizeType.Percent, 38));
+
+            var title = new Label
+            {
+                Text = "Local Events & Announcements",
+                Dock = DockStyle.Fill,
+                ForeColor = white,
+                Font = new Font("Segoe UI", 20, FontStyle.Bold),
+                TextAlign = ContentAlignment.MiddleLeft,
+                AutoEllipsis = true,
+                Margin = Padding.Empty
+            };
+
+            var subtitle = new Label
+            {
+                Text = "Find upcoming community events and important municipal announcements.",
+                Dock = DockStyle.Fill,
+                ForeColor = Color.LightGray,
+                Font = new Font("Segoe UI", 9.5f),
+                TextAlign = ContentAlignment.TopLeft,
+                AutoEllipsis = true,
+                Margin = new Padding(2, 0, 0, 0)
+            };
+
+            textLayout.Controls.Add(title, 0, 0);
+            textLayout.Controls.Add(subtitle, 0, 1);
+
+            var accentLine = new Panel
+            {
+                Dock = DockStyle.Bottom,
+                Height = 5,
+                BackColor = accent
+            };
+
+            header.Controls.Add(textLayout);
+            header.Controls.Add(accentLine);
+            return header;
+        }
+
+        private Button CreateActionButton(string text, Color backColor, Color foreColor)
+        {
+            return new Button
+            {
+                Text = text,
+                Dock = DockStyle.Fill,
+                MinimumSize = new Size(0, 40),
+                FlatStyle = FlatStyle.Flat,
+                BackColor = backColor,
+                ForeColor = foreColor,
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                Cursor = Cursors.Hand,
+                FlatAppearance =
+                {
+                    BorderSize = 1,
+                    BorderColor = backColor
+                }
+            };
         }
 
         private void SeedEvents()
@@ -205,18 +348,18 @@ namespace MunicipalServicesApp
                     Title = "Community Clean-Up Day",
                     Category = "Community",
                     EventDate = today.AddDays(3),
-                    Location = "Johannesburg Civic Centre",
-                    Description = "Residents are invited to join a community clean-up and recycling drive.",
+                    Location = "Soweto Community Hall",
+                    Description = "Join residents for a neighbourhood clean-up and recycling drive.",
                     IsAnnouncement = false
                 },
                 new EventItem
                 {
                     Id = 2,
-                    Title = "Scheduled Water Maintenance",
+                    Title = "Planned Water Maintenance",
                     Category = "Municipal Notice",
                     EventDate = today.AddDays(5),
-                    Location = "Sandton",
-                    Description = "Planned water maintenance may cause temporary interruptions between 09:00 and 15:00.",
+                    Location = "Sandton and surrounding areas",
+                    Description = "Scheduled maintenance may cause temporary interruptions to the water supply.",
                     IsAnnouncement = true
                 },
                 new EventItem
@@ -225,18 +368,18 @@ namespace MunicipalServicesApp
                     Title = "Local Business Support Workshop",
                     Category = "Business",
                     EventDate = today.AddDays(7),
-                    Location = "Braamfontein Library",
-                    Description = "A free workshop for local entrepreneurs covering municipal support and business resources.",
+                    Location = "Johannesburg Civic Centre",
+                    Description = "A practical workshop for local entrepreneurs and small business owners.",
                     IsAnnouncement = false
                 },
                 new EventItem
                 {
                     Id = 4,
-                    Title = "Youth Sports Day",
-                    Category = "Sports",
-                    EventDate = today.AddDays(9),
-                    Location = "Patterson Park",
-                    Description = "A community sports day with football, netball and family activities.",
+                    Title = "Youth Sports Fun Day",
+                    Category = "Sport",
+                    EventDate = today.AddDays(10),
+                    Location = "Roodepoort Sports Complex",
+                    Description = "Free community sports activities for young residents and families.",
                     IsAnnouncement = false
                 },
                 new EventItem
@@ -244,59 +387,39 @@ namespace MunicipalServicesApp
                     Id = 5,
                     Title = "Electricity Network Upgrade Notice",
                     Category = "Municipal Notice",
-                    EventDate = today.AddDays(11),
-                    Location = "Randburg",
-                    Description = "Residents are advised of a planned electricity network upgrade in selected areas.",
+                    EventDate = today.AddDays(12),
+                    Location = "Johannesburg South",
+                    Description = "Residents are advised of planned electricity network upgrades in selected areas.",
                     IsAnnouncement = true
                 },
                 new EventItem
                 {
                     Id = 6,
-                    Title = "Community Safety Forum",
-                    Category = "Community",
+                    Title = "Community Health Awareness Day",
+                    Category = "Health",
                     EventDate = today.AddDays(14),
-                    Location = "Rosebank Community Hall",
-                    Description = "Meet community representatives and discuss local safety concerns and initiatives.",
+                    Location = "Alexandra Community Centre",
+                    Description = "Health information, basic screenings and wellness support for residents.",
                     IsAnnouncement = false
                 },
                 new EventItem
                 {
                     Id = 7,
-                    Title = "Public Library Digital Skills Session",
-                    Category = "Education",
-                    EventDate = today.AddDays(16),
-                    Location = "Johannesburg City Library",
-                    Description = "A beginner-friendly session covering online municipal services and basic digital skills.",
+                    Title = "Heritage Community Market",
+                    Category = "Community",
+                    EventDate = today.AddDays(18),
+                    Location = "Newtown",
+                    Description = "A community market featuring local food, crafts and cultural activities.",
                     IsAnnouncement = false
                 },
                 new EventItem
                 {
                     Id = 8,
-                    Title = "Park Maintenance Announcement",
-                    Category = "Municipal Notice",
-                    EventDate = today.AddDays(18),
-                    Location = "Emmarentia",
-                    Description = "Sections of the public park will be temporarily closed while maintenance is completed.",
-                    IsAnnouncement = true
-                },
-                new EventItem
-                {
-                    Id = 9,
-                    Title = "Heritage Community Market",
-                    Category = "Community",
-                    EventDate = today.AddDays(21),
-                    Location = "Newtown",
-                    Description = "A local market featuring food, crafts, music and small businesses from the community.",
-                    IsAnnouncement = false
-                },
-                new EventItem
-                {
-                    Id = 10,
-                    Title = "Environmental Awareness Talk",
+                    Title = "Library Digital Skills Session",
                     Category = "Education",
-                    EventDate = today.AddDays(24),
-                    Location = "Zoo Lake",
-                    Description = "Learn practical ways households can reduce waste and support a cleaner city.",
+                    EventDate = today.AddDays(21),
+                    Location = "Johannesburg City Library",
+                    Description = "A free session covering basic digital skills and online municipal services.",
                     IsAnnouncement = false
                 }
             });
@@ -304,28 +427,26 @@ namespace MunicipalServicesApp
 
         private void BuildDataStructures()
         {
-            foreach (EventItem item in allEvents.OrderBy(e => e.EventDate))
+            foreach (EventItem item in allEvents)
             {
-                DateTime date = item.EventDate.Date;
+                DateTime eventDate = item.EventDate.Date;
 
-                if (!eventsByDate.TryGetValue(date, out List<EventItem>? dateEvents))
+                if (!eventsByDate.ContainsKey(eventDate))
                 {
-                    dateEvents = new List<EventItem>();
-                    eventsByDate[date] = dateEvents;
+                    eventsByDate[eventDate] = new List<EventItem>();
                 }
-                dateEvents.Add(item);
+                eventsByDate[eventDate].Add(item);
 
-                if (!eventsByCategory.TryGetValue(item.Category, out List<EventItem>? categoryEvents))
+                if (!eventsByCategory.ContainsKey(item.Category))
                 {
-                    categoryEvents = new List<EventItem>();
-                    eventsByCategory[item.Category] = categoryEvents;
+                    eventsByCategory[item.Category] = new List<EventItem>();
                 }
-                categoryEvents.Add(item);
+                eventsByCategory[item.Category].Add(item);
 
                 uniqueCategories.Add(item.Category);
-                uniqueEventDates.Add(date);
+                uniqueEventDates.Add(eventDate);
 
-                if (date >= DateTime.Today)
+                if (item.EventDate >= DateTime.Today)
                 {
                     upcomingEventQueue.Enqueue(item, item.EventDate);
                 }
@@ -335,7 +456,6 @@ namespace MunicipalServicesApp
         private List<EventItem> GetUpcomingEvents()
         {
             var copy = new PriorityQueue<EventItem, DateTime>();
-
             foreach (EventItem item in allEvents.Where(e => e.EventDate.Date >= DateTime.Today))
             {
                 copy.Enqueue(item, item.EventDate);
@@ -346,41 +466,95 @@ namespace MunicipalServicesApp
             {
                 ordered.Add(copy.Dequeue());
             }
-
             return ordered;
         }
 
-        private void TrackSearch(string keyword, string category, DateTime? selectedDate)
+        private void ApplySearch()
         {
-            var parts = new List<string>();
+            string keyword = txtSearch.Text.Trim();
+            string category = cmbCategory.SelectedItem?.ToString() ?? "All Categories";
+            bool filterByDate = dtpDate.Checked;
+            DateTime selectedDate = dtpDate.Value.Date;
 
-            if (!category.Equals("All Categories", StringComparison.OrdinalIgnoreCase))
+            TrackSearch(keyword, category, filterByDate ? selectedDate : null);
+
+            IEnumerable<EventItem> results;
+
+            if (category != "All Categories" && eventsByCategory.TryGetValue(category, out List<EventItem>? categoryEvents))
             {
-                parts.Add(category);
-                categorySearchCounts[category] = categorySearchCounts.GetValueOrDefault(category) + 1;
+                results = categoryEvents;
+            }
+            else
+            {
+                results = allEvents;
+            }
+
+            results = results.Where(e => e.EventDate.Date >= DateTime.Today);
+
+            if (filterByDate)
+            {
+                if (eventsByDate.TryGetValue(selectedDate, out List<EventItem>? dateEvents))
+                {
+                    HashSet<int> idsForDate = dateEvents.Select(e => e.Id).ToHashSet();
+                    results = results.Where(e => idsForDate.Contains(e.Id));
+                }
+                else
+                {
+                    results = Enumerable.Empty<EventItem>();
+                }
             }
 
             if (!string.IsNullOrWhiteSpace(keyword))
             {
-                parts.Add($"keyword: {keyword}");
+                results = results.Where(e =>
+                    e.Title.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
+                    e.Location.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
+                    e.Description.Contains(keyword, StringComparison.OrdinalIgnoreCase) ||
+                    e.Category.Contains(keyword, StringComparison.OrdinalIgnoreCase));
+            }
+
+            DisplayEvents(results.OrderBy(e => e.EventDate).ToList());
+            UpdateRecommendations();
+        }
+
+        private void TrackSearch(string keyword, string category, DateTime? selectedDate)
+        {
+            string description = category;
+
+            if (category != "All Categories")
+            {
+                if (!categorySearchCounts.ContainsKey(category))
+                {
+                    categorySearchCounts[category] = 0;
+                }
+                categorySearchCounts[category]++;
+            }
+
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                description += $" | {keyword}";
 
                 foreach (string matchingCategory in uniqueCategories.Where(c =>
                     c.Contains(keyword, StringComparison.OrdinalIgnoreCase)))
                 {
-                    categorySearchCounts[matchingCategory] = categorySearchCounts.GetValueOrDefault(matchingCategory) + 1;
+                    if (!categorySearchCounts.ContainsKey(matchingCategory))
+                    {
+                        categorySearchCounts[matchingCategory] = 0;
+                    }
+                    categorySearchCounts[matchingCategory]++;
                 }
             }
 
             if (selectedDate.HasValue)
             {
-                parts.Add(selectedDate.Value.ToString("dd MMM yyyy"));
+                description += $" | {selectedDate.Value:dd MMM yyyy}";
             }
 
-            string description = parts.Count == 0 ? "All upcoming events" : string.Join(" | ", parts);
             recentSearches.Push(description);
 
-            if (recentSearches.Count > 8)
+            while (recentSearches.Count > 8)
             {
+                // Rebuild the stack with only the eight newest searches.
                 string[] newest = recentSearches.Take(8).Reverse().ToArray();
                 recentSearches.Clear();
                 foreach (string item in newest)
@@ -390,58 +564,146 @@ namespace MunicipalServicesApp
             }
         }
 
-        private List<EventItem> GetRecommendations()
+        private void ResetSearch()
         {
-            if (categorySearchCounts.Count == 0)
-            {
-                return GetUpcomingEvents().Take(3).ToList();
-            }
-
-            string preferredCategory = categorySearchCounts
-                .OrderByDescending(pair => pair.Value)
-                .ThenBy(pair => pair.Key)
-                .First().Key;
-
-            return eventsByCategory.TryGetValue(preferredCategory, out List<EventItem>? preferredEvents)
-                ? preferredEvents
-                    .Where(e => e.EventDate.Date >= DateTime.Today)
-                    .OrderBy(e => e.EventDate)
-                    .Take(3)
-                    .ToList()
-                : new List<EventItem>();
+            txtSearch.Clear();
+            cmbCategory.SelectedIndex = 0;
+            dtpDate.Checked = false;
+            DisplayEvents(GetUpcomingEvents());
+            UpdateRecommendations();
         }
 
-        private void DisplayEvents(IReadOnlyCollection<EventItem> items, string heading)
+        private void TxtSearch_KeyDown(object? sender, KeyEventArgs e)
         {
-            Console.WriteLine(heading);
-            Console.WriteLine(new string('-', heading.Length));
+            if (e.KeyCode == Keys.Enter)
+            {
+                ApplySearch();
+                e.SuppressKeyPress = true;
+            }
+        }
+
+        private void DisplayEvents(IReadOnlyCollection<EventItem> items)
+        {
+            eventsPanel.SuspendLayout();
+            eventsPanel.Controls.Clear();
 
             if (items.Count == 0)
             {
-                Console.WriteLine("No matching events were found.");
-                return;
+                var empty = new Label
+                {
+                    Text = "No matching events were found. Try another category, date or keyword.",
+                    AutoSize = false,
+                    Height = 70,
+                    Width = Math.Max(500, eventsPanel.ClientSize.Width - 35),
+                    TextAlign = ContentAlignment.MiddleCenter,
+                    ForeColor = muted,
+                    BackColor = white,
+                    Font = new Font("Segoe UI", 10),
+                    Margin = new Padding(0, 5, 0, 5)
+                };
+                eventsPanel.Controls.Add(empty);
+            }
+            else
+            {
+                foreach (EventItem item in items)
+                {
+                    eventsPanel.Controls.Add(CreateEventCard(item));
+                }
             }
 
-            foreach (EventItem item in items)
-            {
-                string type = item.IsAnnouncement ? "ANNOUNCEMENT" : "EVENT";
-                Console.WriteLine($"[{type}] {item.Title}");
-                Console.WriteLine($"Date     : {item.EventDate:ddd, dd MMM yyyy}");
-                Console.WriteLine($"Category : {item.Category}");
-                Console.WriteLine($"Location : {item.Location}");
-                Console.WriteLine($"Details  : {item.Description}");
-                Console.WriteLine();
-            }
+            lblResultCount.Text = $"{items.Count} result{(items.Count == 1 ? string.Empty : "s")}";
+            eventsPanel.ResumeLayout();
+            ResizeEventCards();
         }
 
-        private void DisplayRecommendations(IReadOnlyCollection<EventItem> recommendations)
+        private Control CreateEventCard(EventItem item)
         {
-            Console.WriteLine("Recommended For You");
-            Console.WriteLine("-------------------");
+            var card = new Panel
+            {
+                BackColor = white,
+                Height = 118,
+                Width = Math.Max(650, eventsPanel.ClientSize.Width - 35),
+                Margin = new Padding(0, 0, 0, 10),
+                Padding = new Padding(16),
+                BorderStyle = BorderStyle.FixedSingle,
+                Tag = "EventCard"
+            };
+
+            var layout = new TableLayoutPanel
+            {
+                Dock = DockStyle.Fill,
+                ColumnCount = 2,
+                RowCount = 3,
+                BackColor = white
+            };
+
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 72));
+            layout.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 28));
+            layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+            layout.RowStyles.Add(new RowStyle(SizeType.Percent, 100));
+
+            var lblTitle = new Label
+            {
+                Text = item.Title,
+                AutoSize = true,
+                Font = new Font("Segoe UI", 11, FontStyle.Bold),
+                ForeColor = dark,
+                Margin = new Padding(0, 0, 0, 4)
+            };
+
+            var lblDate = new Label
+            {
+                Text = item.EventDate.ToString("ddd, dd MMM yyyy"),
+                AutoSize = true,
+                Dock = DockStyle.Fill,
+                TextAlign = ContentAlignment.TopRight,
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                ForeColor = accent
+            };
+
+            string typeText = item.IsAnnouncement ? "ANNOUNCEMENT" : "EVENT";
+            var lblMeta = new Label
+            {
+                Text = $"{typeText}  |  {item.Category}  |  {item.Location}",
+                AutoSize = true,
+                Font = new Font("Segoe UI", 9),
+                ForeColor = muted,
+                Margin = new Padding(0, 0, 0, 4)
+            };
+
+            var lblDescription = new Label
+            {
+                Text = item.Description,
+                AutoEllipsis = true,
+                Dock = DockStyle.Fill,
+                Font = new Font("Segoe UI", 9),
+                ForeColor = dark,
+                Padding = new Padding(0, 3, 0, 0)
+            };
+
+            layout.Controls.Add(lblTitle, 0, 0);
+            layout.Controls.Add(lblDate, 1, 0);
+            layout.Controls.Add(lblMeta, 0, 1);
+            layout.SetColumnSpan(lblMeta, 2);
+            layout.Controls.Add(lblDescription, 0, 2);
+            layout.SetColumnSpan(lblDescription, 2);
+
+            card.Controls.Add(layout);
+            return card;
+        }
+
+        private void UpdateRecommendations()
+        {
+            recommendationsPanel.SuspendLayout();
+            recommendationsPanel.Controls.Clear();
+
+            List<EventItem> recommendations;
 
             if (categorySearchCounts.Count == 0)
             {
-                Console.WriteLine("Popular upcoming items are shown until you search for a category.");
+                recommendations = GetUpcomingEvents().Take(3).ToList();
+                lblRecommendationInfo.Text = "Popular upcoming items are shown until you search for a category.";
             }
             else
             {
@@ -450,20 +712,89 @@ namespace MunicipalServicesApp
                     .ThenBy(pair => pair.Key)
                     .First().Key;
 
-                Console.WriteLine($"Based on your searches, you may be interested in {preferredCategory} events.");
+                recommendations = eventsByCategory.TryGetValue(preferredCategory, out List<EventItem>? preferredEvents)
+                    ? preferredEvents
+                        .Where(e => e.EventDate.Date >= DateTime.Today)
+                        .OrderBy(e => e.EventDate)
+                        .Take(3)
+                        .ToList()
+                    : new List<EventItem>();
+
+                lblRecommendationInfo.Text =
+                    $"Based on your recent searches, you may be interested in {preferredCategory} events.";
             }
 
             foreach (EventItem item in recommendations)
             {
-                Console.WriteLine($"- {item.EventDate:dd MMM yyyy} | {item.Title} | {item.Category}");
+                recommendationsPanel.Controls.Add(CreateRecommendationCard(item));
+            }
+
+            recommendationsPanel.ResumeLayout();
+            ResizeRecommendationCards();
+        }
+
+        private Control CreateRecommendationCard(EventItem item)
+        {
+            var card = new Panel
+            {
+                BackColor = pageBg,
+                Width = 290,
+                Height = 82,
+                Margin = new Padding(0, 0, 10, 8),
+                Padding = new Padding(10),
+                Tag = "RecommendationCard"
+            };
+
+            var title = new Label
+            {
+                Text = item.Title,
+                AutoEllipsis = true,
+                AutoSize = false,
+                Dock = DockStyle.Top,
+                Height = 38,
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                ForeColor = dark
+            };
+
+            var meta = new Label
+            {
+                Text = $"{item.EventDate:dd MMM yyyy} | {item.Category}",
+                AutoSize = false,
+                Dock = DockStyle.Bottom,
+                Height = 24,
+                Font = new Font("Segoe UI", 8),
+                ForeColor = muted
+            };
+
+            card.Controls.Add(title);
+            card.Controls.Add(meta);
+            return card;
+        }
+
+        private void ResizeEventCards()
+        {
+            int width = Math.Max(500, eventsPanel.ClientSize.Width - 30);
+            foreach (Control control in eventsPanel.Controls)
+            {
+                if (Equals(control.Tag, "EventCard") || control is Label)
+                {
+                    control.Width = width;
+                }
             }
         }
 
-        private static void Pause()
+        private void ResizeRecommendationCards()
         {
-            Console.WriteLine();
-            Console.Write("Press Enter to continue...");
-            Console.ReadLine();
+            int available = Math.Max(260, recommendationsPanel.ClientSize.Width - 30);
+            int cardWidth = available >= 900 ? (available / 3) - 12 : available >= 580 ? (available / 2) - 12 : available;
+
+            foreach (Control control in recommendationsPanel.Controls)
+            {
+                if (Equals(control.Tag, "RecommendationCard"))
+                {
+                    control.Width = Math.Max(250, cardWidth);
+                }
+            }
         }
     }
 }
